@@ -20,7 +20,7 @@ const App = () => {
     // Decode base64 encoded image data
     const base64ImageData = imageSrc.split(",")[1];
     const decodedImageData = atob(base64ImageData);
-
+    const randomString = Math.random().toString(36).substring(7);
     // Convert decoded image data into a Blob
     const arrayBuffer = new ArrayBuffer(decodedImageData.length);
     const uint8Array = new Uint8Array(arrayBuffer);
@@ -30,7 +30,9 @@ const App = () => {
     const blob = new Blob([arrayBuffer], { type: "image/jpeg" });
 
     // Create a File object from the Blob
-    const file = new File([blob], "screenshot.jpg", { type: "image/jpeg" });
+    const filename = `screenshot_${Date.now()}_${randomString}.jpg`;
+
+    const file = new File([blob], filename, { type: "image/jpeg" });
 
     const formData = new FormData();
     formData.append("file", file);
@@ -40,19 +42,19 @@ const App = () => {
         headers: {
           "Content-Type": "multipart/form-data",
         },
-      })
+      });
 
       setResponse((prevResponse) => [...prevResponse, res.data]);
       if (res.data.Posture === "proper") {
         setProperCount((prevCount) => prevCount + 1);
       } else if (res.data.Posture === "improper") {
         setImproperCount((prevCount) => prevCount + 1);
-      } else if (res.data.Error){
-        alert("Please sit in front of camera")
+      } else if (res.data.Error) {
+        setIsCapturing(false);
+        alert("Please sit in front of camera");
       }
     } catch (error) {
       console.error("Error sending screenshot:", error);
-
     }
   };
   console.log("Response from API:", response, properCount, improperCount);
@@ -69,13 +71,26 @@ const App = () => {
     if (isCapturing) {
       intervalId = setInterval(() => {
         captureScreenshot();
-      }, 6000); // Capture every minute
+      }, 10000); // Capture every minute
     } else {
       clearInterval(intervalId);
     }
 
     return () => clearInterval(intervalId);
   }, [isCapturing]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, []);
 
   return (
     <div
