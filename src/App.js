@@ -15,7 +15,10 @@ const App = () => {
   const webcamRef = React.useRef(null);
 
   const captureScreenshot = async () => {
-    const imageSrc = webcamRef.current.getScreenshot();
+    const imageSrc = webcamRef.current.getScreenshot({
+      width: 1280,
+      height: 720,
+    });
 
     // Decode base64 encoded image data
     const base64ImageData = imageSrc.split(",")[1];
@@ -71,7 +74,7 @@ const App = () => {
     if (isCapturing) {
       intervalId = setInterval(() => {
         captureScreenshot();
-      }, 10000); // Capture every minute
+      }, 3000); // Capture every minute
     } else {
       clearInterval(intervalId);
     }
@@ -92,6 +95,10 @@ const App = () => {
     };
   }, []);
 
+  const videoConstraints = {
+    facingMode: "user",
+  };
+
   return (
     <div
       style={{
@@ -99,7 +106,7 @@ const App = () => {
         justifyContent: "center",
         flexDirection: "column",
         alignItems: "center",
-        height: "100vh",
+        minHeight: "100vh",
         background: "black",
         color: "white",
       }}
@@ -110,13 +117,16 @@ const App = () => {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          height: "100vh",
           background: "black",
           color: "white",
         }}
       >
         <div style={{ marginRight: "20px" }}>
-          <Webcam audio={false} ref={webcamRef} />
+          <Webcam
+            audio={false}
+            ref={webcamRef}
+            videoConstraints={videoConstraints}
+          />
           <div style={{ marginTop: "10px" }}>
             {!isCapturing ? (
               <button
@@ -132,34 +142,58 @@ const App = () => {
             )}
           </div>
         </div>
-        <div style={{ height: "80%", width: "30%" }}>
+        <div
+          style={{
+            height: "80%",
+            width: "30%",
+            overflow: "hidden",
+            overflowY: "auto",
+          }}
+        >
           <h2>API Response:</h2>
-          <div>
-            {response?.map((data, index) => (
-              <div key={index} style={{ textTransform: "capitalize" }}>
+          <div
+            style={{
+              height: "260px",
+              overflow: "hidden",
+              overflowX: "auto",
+              fontSize: "18px",
+              fontWeight: "800",
+            }}
+          >
+            {reversedResponse?.map((data, index) => (
+              <div
+                key={index}
+                style={{
+                  textTransform: "capitalize",
+                  color:
+                    data.Posture === "proper"
+                      ? "green"
+                      : data.Posture === "improper"
+                      ? "red"
+                      : "black",
+                }}
+              >
                 {data.Posture}
               </div>
             ))}
           </div>
-          {properPercentage > 0 && (
-            <div>
-              <h2>
-                Proper Sitting Percentage:{" "}
-                <span
-                  style={{
-                    color:
-                      properPercentage < 30
-                        ? "red"
-                        : properPercentage < 55
-                        ? "yellow"
-                        : "green",
-                  }}
-                >
-                  {properPercentage.toFixed(2)}%
-                </span>
-              </h2>
-            </div>
-          )}
+          <div>
+            <h2>
+              Proper Sitting Percentage:{" "}
+              <span
+                style={{
+                  color:
+                    properPercentage < 30
+                      ? "red"
+                      : properPercentage < 55
+                      ? "yellow"
+                      : "green",
+                }}
+              >
+                {properPercentage.toFixed(2)}%
+              </span>
+            </h2>
+          </div>
         </div>
       </div>
     </div>
