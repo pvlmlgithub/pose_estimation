@@ -12,6 +12,7 @@ const App = () => {
   const [improperCount, setImproperCount] = useState(0);
   const [properPercentage, setProperPercentage] = useState(0);
 
+
   const webcamRef = React.useRef(null);
 
   const captureScreenshot = async () => {
@@ -160,7 +161,7 @@ const App = () => {
               fontWeight: "800",
             }}
           >
-            {reversedResponse?.map((data, index) => (
+            {response?.map((data, index) => (
               <div
                 key={index}
                 style={{
