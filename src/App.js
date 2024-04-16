@@ -15,16 +15,22 @@ const App = () => {
 
   const webcamRef = React.useRef(null);
 
-  const captureScreenshot = async () => {
-    const imageSrc = webcamRef.current.getScreenshot({
-      width: 1280,
-      height: 720,
-    });
+ const captureScreenshot = async () => {
+  const imageSrc = webcamRef.current.getScreenshot();
 
-    // Decode base64 encoded image data
-    const base64ImageData = imageSrc.split(",")[1];
+  const tempImage = new Image();
+  tempImage.onload = async () => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 1280;
+    canvas.height = 720;
+    const context = canvas.getContext("2d");
+    context.drawImage(tempImage, 0, 0, 1270, 720);
+
+    const resizedImageDataURL = canvas.toDataURL("image/jpeg");
+
+    const base64ImageData = resizedImageDataURL.split(",")[1];
     const decodedImageData = atob(base64ImageData);
-    const randomString = Math.random().toString(36).substring(7);
+
     // Convert decoded image data into a Blob
     const arrayBuffer = new ArrayBuffer(decodedImageData.length);
     const uint8Array = new Uint8Array(arrayBuffer);
@@ -32,10 +38,9 @@ const App = () => {
       uint8Array[i] = decodedImageData.charCodeAt(i);
     }
     const blob = new Blob([arrayBuffer], { type: "image/jpeg" });
-
+    const randomString = Math.random().toString(36).substring(7);
     // Create a File object from the Blob
-    const filename = `screenshot_${Date.now()}_${randomString}.jpg`;
-
+    const filename = `image_${Date.now()}_${randomString}.jpg`;
     const file = new File([blob], filename, { type: "image/jpeg" });
 
     const formData = new FormData();
@@ -55,12 +60,16 @@ const App = () => {
         setImproperCount((prevCount) => prevCount + 1);
       } else if (res.data.Error) {
         setIsCapturing(false);
-        alert("Please sit in front of camera");
+        alert("Please sit in front of the camera");
       }
     } catch (error) {
-      console.error("Error sending screenshot:", error);
+      console.error("Error sending image:", error);
     }
   };
+
+  tempImage.src = imageSrc;
+};
+
   console.log("Response from API:", response, properCount, improperCount);
 
   const stopCapturing = () => {
@@ -75,7 +84,7 @@ const App = () => {
     if (isCapturing) {
       intervalId = setInterval(() => {
         captureScreenshot();
-      }, 3000); // Capture every minute
+      }, 10000); // Capture every minute
     } else {
       clearInterval(intervalId);
     }
