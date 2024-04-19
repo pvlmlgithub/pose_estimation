@@ -107,6 +107,8 @@ const App = () => {
 
   const videoConstraints = {
     facingMode: "user",
+    height:180,
+    width:320
   };
 
   return (
@@ -163,7 +165,7 @@ const App = () => {
           <h2>API Response:</h2>
           <div
             style={{
-              height: "260px",
+              height: "160px",
               overflow: "hidden",
               overflowX: "auto",
               fontSize: "18px",
